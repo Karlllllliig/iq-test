@@ -1,84 +1,521 @@
 <!DOCTYPE html>
-    button:hover {
-      background: #6366f1;
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IQ-Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111118;
+      --border: #1e1e2e;
+      --accent: #e8ff47;
+      --accent2: #ff4757;
+      --text: #f0f0f0;
+      --muted: #555570;
+      --correct: #47ffb0;
     }
 
-    .option {
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Animated grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.5;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(ellipse at 60% 40%, rgba(232,255,71,0.04) 0%, transparent 60%),
+                  radial-gradient(ellipse at 20% 80%, rgba(255,71,87,0.04) 0%, transparent 50%);
+      z-index: 0;
+      animation: drift 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes drift {
+      from { transform: translate(0,0); }
+      to   { transform: translate(30px, -20px); }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: min(640px, 92vw);
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 32px;
+      animation: slideDown 0.6s ease both;
+    }
+
+    .title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .title span {
+      color: var(--accent);
       display: block;
-      margin: 10px 0;
+    }
+
+    .badge {
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--muted);
+      text-transform: uppercase;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+
+    /* Progress bar */
+    .progress-wrap {
+      margin-bottom: 24px;
+      animation: slideDown 0.6s 0.1s ease both;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .progress-track {
+      height: 2px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 12px var(--accent);
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 40px;
+      animation: fadeUp 0.5s ease both;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.4;
+    }
+
+    .question-num {
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .question-text {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(18px, 3vw, 24px);
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 36px;
+      color: var(--text);
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .option-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 14px;
+      padding: 16px 20px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .option-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .option-btn:hover::before { opacity: 0.05; }
+    .option-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateX(4px);
+    }
+
+    .option-btn.correct {
+      border-color: var(--correct);
+      color: var(--correct);
+      background: rgba(71, 255, 176, 0.06);
+    }
+
+    .option-btn.wrong {
+      border-color: var(--accent2);
+      color: var(--accent2);
+      background: rgba(255, 71, 87, 0.06);
+    }
+
+    .option-btn:disabled { cursor: default; transform: none; }
+
+    .opt-letter {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 500;
+      letter-spacing: 1px;
+      min-width: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .opt-text { position: relative; z-index: 1; }
+
+    /* Result screen */
+    .result {
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .iq-display {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(80px, 18vw, 130px);
+      font-weight: 800;
+      line-height: 1;
+      margin: 20px 0;
+      letter-spacing: -4px;
+      animation: countUp 0.8s cubic-bezier(0.2, 0.6, 0.4, 1) both;
+    }
+
+    .iq-display.high { color: var(--accent); text-shadow: 0 0 60px rgba(232,255,71,0.4); }
+    .iq-display.low  { color: var(--accent2); text-shadow: 0 0 60px rgba(255,71,87,0.4); }
+
+    .result-label {
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .result-msg {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      margin: 12px 0 32px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 2px;
+      margin-bottom: 32px;
+    }
+
+    .stat {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-val {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .stat-lbl { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+
+    .retry-btn {
+      background: var(--accent);
+      color: #0a0a0f;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      padding: 16px 40px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .retry-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(232,255,71,0.3);
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes countUp {
+      from { opacity: 0; transform: scale(0.7); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .flash-wrong {
+      animation: flashRed 0.4s ease;
+    }
+
+    @keyframes flashRed {
+      0%,100% { border-color: var(--border); }
+      50% { border-color: var(--accent2); box-shadow: 0 0 30px rgba(255,71,87,0.15); }
     }
   </style>
 </head>
 <body>
-  <div class="box">
-    <h1>Extrem schwerer IQ-Test</h1>
+<div class="container">
+
+  <div class="header">
+    <div class="title">IQ<span>Test.</span></div>
+    <div class="badge">Schwer</div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-info">
+      <span id="prog-label">Frage 1 von 10</span>
+      <span id="fehler-label">0 Fehler</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:10%"></div>
+    </div>
+  </div>
+
+  <div class="card" id="card">
     <div id="quiz"></div>
   </div>
 
-  <script>
-    const fragen = [
-      {
-        frage: "Was ist schwerer: 1kg Federn oder 1kg Eisen?",
-        optionen: ["Federn", "Eisen", "Beides gleich"],
-        richtig: "Beides gleich"
-      },
-      {
-        frage: "Wie viele Monate haben 28 Tage?",
-        optionen: ["1", "2", "Alle"],
-        richtig: "Alle"
-      },
-      {
-        frage: "Wenn ein Flugzeug an der Grenze abstürzt, wo werden die Überlebenden begraben?",
-        optionen: ["Deutschland", "Frankreich", "Nirgendwo"],
-        richtig: "Nirgendwo"
+</div>
+
+<script>
+const fragen = [
+  {
+    frage: "Ein Bauer hat 17 Schafe. Alle bis auf 9 sterben. Wie viele hat er noch?",
+    optionen: ["8", "9", "17", "0"],
+    richtig: "9"
+  },
+  {
+    frage: "Du bist Busfahrer. 20 Leute steigen ein, 7 steigen aus, dann 13 ein, 5 aus. Wie alt ist der Busfahrer?",
+    optionen: ["21", "Unmöglich zu sagen", "So alt wie du", "31"],
+    richtig: "So alt wie du"
+  },
+  {
+    frage: "Was kommt einmal in einer Minute vor, zweimal in einem Moment, aber niemals in tausend Jahren?",
+    optionen: ["Der Tod", "Der Buchstabe M", "Eine Sekunde", "Das Wort 'nie'"],
+    richtig: "Der Buchstabe M"
+  },
+  {
+    frage: "Ich habe Städte, aber keine Häuser. Ich habe Berge, aber keine Bäume. Ich habe Wasser, aber keine Fische. Was bin ich?",
+    optionen: ["Ein Traum", "Eine Landkarte", "Das Universum", "Ein Gemälde"],
+    richtig: "Eine Landkarte"
+  },
+  {
+    frage: "Wie viele Vornamen hat der deutsche Kanzler, der am 8. Mai 1945 die Kapitulation unterzeichnet hat?",
+    optionen: ["2", "3", "Keiner — es gab keinen solchen Kanzler", "1"],
+    richtig: "Keiner — es gab keinen solchen Kanzler"
+  },
+  {
+    frage: "Ein Vater ist 30 Jahre älter als sein Sohn. In 5 Jahren wird er 4× so alt sein wie sein Sohn. Wie alt ist der Sohn jetzt?",
+    optionen: ["5", "10", "15", "-5"],
+    richtig: "-5"
+  },
+  {
+    frage: "Wenn du mich nennst, existiere ich nicht mehr. Was bin ich?",
+    optionen: ["Lüge", "Stille", "Dunkelheit", "Vergangenheit"],
+    richtig: "Stille"
+  },
+  {
+    frage: "Ein Hahn sitzt auf dem First eines Daches. In welche Richtung fällt das Ei?",
+    optionen: ["Nach links", "Nach rechts", "Hähne legen keine Eier", "In Windrichtung"],
+    richtig: "Hähne legen keine Eier"
+  },
+  {
+    frage: "3 Ärzte sagen, dass Robert ihr Bruder ist. Robert sagt, er hat keine Brüder. Wer lügt?",
+    optionen: ["Robert", "Die Ärzte", "Niemand", "Alle"],
+    richtig: "Niemand"
+  },
+  {
+    frage: "Du hast zwei Münzen, zusammen 30 Cent. Eine ist kein 10-Cent-Stück. Was sind es für Münzen?",
+    optionen: ["Zwei 15-Cent-Münzen", "10 und 20 Cent", "20-Cent und 10-Cent", "Die andere ist ein 10-Cent-Stück"],
+    richtig: "Die andere ist ein 10-Cent-Stück"
+  }
+];
+
+let index = 0;
+let fehler = 0;
+const quiz = document.getElementById("quiz");
+const card = document.getElementById("card");
+const progFill = document.getElementById("progress-fill");
+const progLabel = document.getElementById("prog-label");
+const fehlerLabel = document.getElementById("fehler-label");
+const LETTERS = ["A","B","C","D"];
+
+function updateProgress() {
+  const pct = ((index) / fragen.length) * 100 + 10;
+  progFill.style.width = Math.min(pct, 100) + "%";
+  progLabel.textContent = `Frage ${Math.min(index+1, fragen.length)} von ${fragen.length}`;
+  fehlerLabel.textContent = `${fehler} Fehler`;
+}
+
+function zeigeFrage() {
+  if (index >= fragen.length) { ende(); return; }
+  updateProgress();
+  const f = fragen[index];
+  quiz.innerHTML = `
+    <div class="question-num">Frage ${index + 1} / ${fragen.length}</div>
+    <div class="question-text">${f.frage}</div>
+    <div class="options">
+      ${f.optionen.map((o, i) => `
+        <button class="option-btn" onclick="antwort(this, '${o.replace(/'/g,"\\'")}')">
+          <span class="opt-letter">${LETTERS[i]}</span>
+          <span class="opt-text">${o}</span>
+        </button>
+      `).join('')}
+    </div>
+  `;
+}
+
+function antwort(btn, a) {
+  const buttons = document.querySelectorAll(".option-btn");
+  buttons.forEach(b => b.disabled = true);
+
+  const richtig = fragen[index].richtig;
+  const correct = a === richtig;
+
+  if (!correct) {
+    fehler++;
+    btn.classList.add("wrong");
+    card.classList.add("flash-wrong");
+    setTimeout(() => card.classList.remove("flash-wrong"), 400);
+    // show correct
+    buttons.forEach(b => {
+      if (b.querySelector(".opt-text").textContent === richtig) {
+        b.classList.add("correct");
       }
-    ];
+    });
+  } else {
+    btn.classList.add("correct");
+  }
 
-    let index = 0;
-    let fehler = 0;
+  fehlerLabel.textContent = `${fehler} Fehler`;
 
-    const quiz = document.getElementById("quiz");
-
-    function zeigeFrage() {
-      if(index >= fragen.length) {
-        ende();
-        return;
-      }
-
-      const f = fragen[index];
-
-      quiz.innerHTML = `
-        <h2>${f.frage}</h2>
-        ${f.optionen.map(o => `
-          <button class="option" onclick="antwort('${o}')">${o}</button>
-        `).join('')}
-      `;
-    }
-
-    function antwort(a) {
-      if(a !== fragen[index].richtig) {
-        fehler++;
-      }
-
-      index++;
-      zeigeFrage();
-    }
-
-    function ende() {
-      let iq = 145;
-
-      if(fehler >= 1) {
-        iq = 67;
-      }
-
-      quiz.innerHTML = `
-        <h2>Test beendet</h2>
-        <p>Dein IQ beträgt:</p>
-        <h1>${iq}</h1>
-      `;
-    }
-
+  setTimeout(() => {
+    index++;
     zeigeFrage();
-  </script>
+  }, 900);
+}
+
+function ende() {
+  progFill.style.width = "100%";
+  progLabel.textContent = "Abgeschlossen";
+
+  const richtige = fragen.length - fehler;
+  const iq = fehler === 0 ? 145 : fehler <= 2 ? 120 : fehler <= 5 ? 100 : 67;
+  const isHigh = iq >= 120;
+  const msg = iq >= 145 ? "Absolutes Genie 🧠" : iq >= 120 ? "Überdurchschnittlich klug" : iq >= 100 ? "Durchschnitt" : "Wer alles richtig macht, bekommt kein 67";
+
+  quiz.innerHTML = `
+    <div class="result">
+      <div class="result-label">Dein IQ-Ergebnis</div>
+      <div class="iq-display ${isHigh ? 'high' : 'low'}">${iq}</div>
+      <div class="result-msg">${msg}</div>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-val" style="color:var(--correct)">${richtige}</div>
+          <div class="stat-lbl">Richtig</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" style="color:var(--accent2)">${fehler}</div>
+          <div class="stat-lbl">Falsch</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">${fragen.length}</div>
+          <div class="stat-lbl">Gesamt</div>
+        </div>
+      </div>
+      <button class="retry-btn" onclick="restart()">Nochmal versuchen</button>
+    </div>
+  `;
+}
+
+function restart() {
+  index = 0; fehler = 0;
+  updateProgress();
+  zeigeFrage();
+}
+
+zeigeFrage();
+</script>
 </body>
 </html>
