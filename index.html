@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+    button:hover {
+      background: #6366f1;
+    }
+
+    .option {
+      display: block;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Extrem schwerer IQ-Test</h1>
+    <div id="quiz"></div>
+  </div>
+
+  <script>
+    const fragen = [
+      {
+        frage: "Was ist schwerer: 1kg Federn oder 1kg Eisen?",
+        optionen: ["Federn", "Eisen", "Beides gleich"],
+        richtig: "Beides gleich"
+      },
+      {
+        frage: "Wie viele Monate haben 28 Tage?",
+        optionen: ["1", "2", "Alle"],
+        richtig: "Alle"
+      },
+      {
+        frage: "Wenn ein Flugzeug an der Grenze abstürzt, wo werden die Überlebenden begraben?",
+        optionen: ["Deutschland", "Frankreich", "Nirgendwo"],
+        richtig: "Nirgendwo"
+      }
+    ];
+
+    let index = 0;
+    let fehler = 0;
+
+    const quiz = document.getElementById("quiz");
+
+    function zeigeFrage() {
+      if(index >= fragen.length) {
+        ende();
+        return;
+      }
+
+      const f = fragen[index];
+
+      quiz.innerHTML = `
+        <h2>${f.frage}</h2>
+        ${f.optionen.map(o => `
+          <button class="option" onclick="antwort('${o}')">${o}</button>
+        `).join('')}
+      `;
+    }
+
+    function antwort(a) {
+      if(a !== fragen[index].richtig) {
+        fehler++;
+      }
+
+      index++;
+      zeigeFrage();
+    }
+
+    function ende() {
+      let iq = 145;
+
+      if(fehler >= 1) {
+        iq = 67;
+      }
+
+      quiz.innerHTML = `
+        <h2>Test beendet</h2>
+        <p>Dein IQ beträgt:</p>
+        <h1>${iq}</h1>
+      `;
+    }
+
+    zeigeFrage();
+  </script>
+</body>
+</html>
